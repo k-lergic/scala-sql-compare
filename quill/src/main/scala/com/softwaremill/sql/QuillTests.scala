@@ -1,10 +1,9 @@
 package com.softwaremill.sql
 
 import com.softwaremill.sql.TrackType.TrackType
-import io.getquill.{PostgresAsyncContext, SnakeCase}
-
+import io.getquill.{Ord, PostgresAsyncContext, Query, SnakeCase}
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.concurrent.ExecutionContext.Implicits.{ global => ec } // making tx-scoped ECs work
+import scala.concurrent.ExecutionContext.Implicits.{global => ec}
 import scala.concurrent.duration._
 
 object QuillTests extends App with DbSetup {
@@ -202,7 +201,7 @@ object QuillTests extends App with DbSetup {
     println("Transactions")
     ctx.transaction { implicit ec =>
       for {
-        inserted <- insert(City(CityId(0), "Invalid", 0, 0, None))
+        inserted <- insert(City(CityId(10), "Invalid", 0, 0, None))
         deleted <- delete(inserted.id)
       } yield {
         println(s"Deleted $deleted rows")
@@ -221,7 +220,7 @@ object QuillTests extends App with DbSetup {
     }
 
     val combined = for {
-      inserted <- insert(City(CityId(0), "Invalid", 0, 0, None))
+      inserted <- insert(City(CityId(10), "Invalid", 0, 0, None))
       deleted <- delete(inserted.id)
     } yield {
       println(s"Deleted $deleted rows")

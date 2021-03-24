@@ -1,18 +1,23 @@
 package com.softwaremill.sql
 
+import scala.concurrent.ExecutionContext
+
 import com.softwaremill.sql.TrackType.TrackType
 import doobie._
 import doobie.implicits._
-import cats.effect.IO
+import cats.effect.{ContextShift, IO}
 
 object DoobieTests extends App with DbSetup {
   dbSetup()
 
+  val dbExecutionContext = ExecutionContext.global // replace with your DB specific EC.
+  implicit val contextShift: ContextShift[IO] = IO.contextShift(dbExecutionContext)
+
   val xa = Transactor.fromDriverManager[IO](
-    "org.postgresql.Driver", "jdbc:postgresql:sql_compare", null, null)
+    "org.postgresql.Driver", "jdbc:postgresql:postgres", "postgres", "docker")
 
   implicit val trackTypeMeta: Meta[TrackType] =
-    Meta[Int].xmap(TrackType.byIdOrThrow, _.id)
+    Meta[Int].imap(TrackType.byIdOrThrow)(_.id)
 
   def insertCity(name: String, population: Int, area: Float, link: Option[String]): ConnectionIO[City] = {
     sql"insert into city(name, population, area, link) values ($name, $population, $area, $link)"
